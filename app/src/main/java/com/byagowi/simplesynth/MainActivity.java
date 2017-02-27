@@ -17,6 +17,7 @@ import jp.kshoji.driver.midi.device.MidiInputDevice;
 import jp.kshoji.driver.midi.device.MidiOutputDevice;
 
 public class MainActivity extends AbstractMultipleMidiActivity {
+
     public static final String TAG = "MainActivity";
 
     MidiDriver mMidiDriver;
@@ -27,16 +28,7 @@ public class MainActivity extends AbstractMultipleMidiActivity {
         setContentView(R.layout.activity_main);
 
         mMidiDriver = new MidiDriver();
-        mMidiDriver.setOnMidiStartListener(new MidiDriver.OnMidiStartListener() {
-            @Override
-            public void onMidiStart() {
-                createLayout();
-            }
-        });
         mMidiDriver.start();
-    }
-
-    void createLayout() {
         LinearLayout parentLayout = (LinearLayout) findViewById(R.id.instruments);
 
         ArrayAdapter<String> instrumentsListAdapter =
@@ -85,7 +77,16 @@ public class MainActivity extends AbstractMultipleMidiActivity {
 
                 Spinner s = new Spinner(this);
                 s.setAdapter(instrumentsListAdapter);
-                s.setOnItemSelectedListener(new ProgramChangeClickListener(channelId));
+                s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        Log.d(TAG, "program change issued");
+                        sendMidi(PROGRAM_CHANGE + channelId, position - 1);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) { }
+                });
 
                 ll.addView(s);
             }
@@ -93,25 +94,6 @@ public class MainActivity extends AbstractMultipleMidiActivity {
     }
 
     public static final int PROGRAM_CHANGE = 0xC0;
-
-    private class ProgramChangeClickListener implements AdapterView.OnItemSelectedListener {
-        private final int channelId;
-
-        ProgramChangeClickListener(int channelId) { this.channelId = channelId; }
-
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            Log.d(TAG, "program change issued");
-
-            byte[] msg = new byte[2];
-            msg[0] = (byte) (PROGRAM_CHANGE + channelId);
-            msg[1] = (byte) position;
-            mMidiDriver.write(msg);
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) { }
-    }
 
     public static final int NOTE_OFF = 0x80;
     public static final int NOTE_ON = 0x90;
@@ -124,14 +106,9 @@ public class MainActivity extends AbstractMultipleMidiActivity {
                 try {
                     byte[] msg = new byte[3];
                     for (int note : notes) {
-                        msg[0] = (byte) (NOTE_ON + channelId); // NOTE_ON
-                        msg[1] = (byte) note;
-                        msg[2] = (byte) 127;
-                        mMidiDriver.write(msg);
+                        sendMidi(NOTE_ON + channelId, note, 127);
                         Thread.sleep(200);
-                        msg[0] = (byte) (NOTE_OFF + channelId); // NOTE_OFF
-                        msg[1] = (byte) note;
-                        msg[2] = (byte) 0;
+                        sendMidi(NOTE_OFF + channelId, note, 0);
                         mMidiDriver.write(msg);
                     }
                 } catch (InterruptedException e) {
@@ -327,5 +304,4 @@ public class MainActivity extends AbstractMultipleMidiActivity {
     public void onMidiReset(MidiInputDevice sender, int cable) {
 
     }
-
 }
