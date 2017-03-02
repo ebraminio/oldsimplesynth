@@ -81,7 +81,7 @@ public class MainActivity extends AbstractMultipleMidiActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         Log.d(TAG, "program change issued");
-                        sendMidi(PROGRAM_CHANGE + channelId, position - 1);
+                        sendMidi(PROGRAM_CHANGE + channelId, position);
                     }
 
                     @Override
@@ -93,105 +93,87 @@ public class MainActivity extends AbstractMultipleMidiActivity {
         }
     }
 
-    public static final int PROGRAM_CHANGE = 0xC0;
-
+    // Channel voice messages.
     public static final int NOTE_OFF = 0x80;
     public static final int NOTE_ON = 0x90;
-
-    private void playChord(final int channelId, final int... notes) {
-        Log.d(TAG, "chord play issued");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    byte[] msg = new byte[3];
-                    for (int note : notes) {
-                        sendMidi(NOTE_ON + channelId, note, 127);
-                        Thread.sleep(200);
-                        sendMidi(NOTE_OFF + channelId, note, 0);
-                        mMidiDriver.write(msg);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    public static final String[] INSTRUMENTS = new String[]{"Acoustic Grand Piano",
-            "Bright Acoustic Piano", "Electric Grand Piano", "Honky Tonk Piano", "Electric Piano 0",
-            "Electric Piano 1", "Harpsichord", "Clavi", "Celesta", "Glockenspiel", "Music Box",
-            "Vibraphone", "Marimba", "Xylophone", "Tubular Bells", "Dulcimer", "Drawbar Organ",
-            "Percussive Organ", "Rock Organ", "Church Organ", "Reed Organ", "Accordion",
-            "Harmonica", "Tango Accordion", "Acoustic Guitar Nylon", "Acoustic Guitar Steel",
-            "Electric Guitar Jazz", "Electric Guitar Clean", "Electric Guitar Muted",
-            "Overdriven Guitar", "Distortion Guitar", "Guitar Harmonics", "Acoustic Bass",
-            "Electric Bass Finger", "Electric Bass Pick", "Fretless Bass", "Slap Bass 0",
-            "Slap Bass 1", "Synth Bass 0", "Synth Bass 1", "Violin", "Viola", "Cello", "Contrabass",
-            "Tremolo Strings", "Pizzicato Strings", "Orchestral Harp", "Timpani",
-            "String Ensemble 0", "String Ensemble 1", "Synthstrings 0", "Synthstrings 1",
-            "Choir Aahs", "Voice Oohs", "Synth Voice", "Orchestra Hit", "Trumpet", "Trombone",
-            "Tuba", "Muted Trumpet", "French Horn", "Brass Section", "Synthbrass 0", "Synthbrass 1",
-            "Soprano", "Alto Sax", "Tenor Sax", "Baritone Sax", "Oboe", "English Horn", "Bassoon",
-            "Clarinet", "Piccolo", "Flute", "Recorder", "Pan Flute", "Blown Bottle", "Shakuhachi",
-            "Whistle", "Ocarina", "Lead 0 Square", "Lead 1 Sawtooth", "Lead 2 Calliope",
-            "Lead 3 Chiff", "Lead 4 Charang", "Lead 5 Voice", "Lead 6 Fifths", "Lead 7 Bass Lead",
-            "Pad 0 New Age", "Pad 1 Warm", "Pad 2 Polysynth", "Pad 3 Choir", "Pad 4 Bowed",
-            "Pad 5 Metallic", "Pad 6 Halo", "Pad 7 Sweep", "Fx 0 Rain", "Fx 1 Soundtrack",
-            "Fx 2 Crystal", "Fx 3 Atmosphere", "Fx 4 Brightness", "Fx 5 Goblins", "Fx 6 Echoes",
-            "Fx 7 Sci Fi", "Sit R", "Banjo", "Shamisen", "Koto", "Kalimba", "Bag Pipe", "Fiddle",
-            "Shanai", "Tinkle Bell", "Agogo", "Steel Drums", "Woodblock", "Taiko Drum",
-            "Melodic Tom", "Synth Drum", "Reverse Cymbal", "Guitar Fret Noise", "Breath Noise",
-            "Seashore", "Bird Tweet", "Telephone Ring", "Helicopter", "Applause", "Gunshot"};
-
-    void sendMidi(int m, int p) {
-        byte msg[] = new byte[2];
-
-        msg[0] = (byte) m;
-        msg[1] = (byte) p;
-
-        mMidiDriver.write(msg);
-    }
-
-    void sendMidi(int m, int n, int v) {
-        byte msg[] = new byte[3];
-
-        msg[0] = (byte) m;
-        msg[1] = (byte) n;
-        msg[2] = (byte) v;
-
-        mMidiDriver.write(msg);
-    }
+    public static final int POLYPHONIC_AFTERTOUCH = 0xA0;
+    public static final int CONTROL_CHANGE = 0xB0;
+    public static final int PROGRAM_CHANGE = 0xC0;
+    public static final int CHANNEL_PRESSURE = 0xD0;
+    public static final int PITCH_BEND = 0xE0;
 
     @Override
     public void onMidiNoteOn(MidiInputDevice sender, int cable, int channel, int note, int velocity) {
-        Log.e(TAG, "NOTE_ON " + channel + " " + note + " " + velocity);
-        sendMidi(channel - 112, note, velocity);
+        sendMidi(channel + NOTE_ON, note, velocity);
     }
 
     @Override
     public void onMidiNoteOff(MidiInputDevice sender, int cable, int channel, int note, int velocity) {
-        Log.e(TAG, "NOTE_ON " + channel + " " + note + " " + velocity);
-        sendMidi(channel - 112, note, velocity);
-    }
-
-    @Override
-    public void onMidiControlChange(MidiInputDevice sender, int cable, int channel, int function, int value) {
-        sendMidi(channel - 112, function, value);
-    }
-
-    @Override
-    public void onMidiProgramChange(MidiInputDevice sender, int cable, int channel, int program) {
-        sendMidi(channel - 112, program);
-    }
-
-    @Override
-    public void onMidiPitchWheel(MidiInputDevice sender, int cable, int channel, int amount) {
-        sendMidi(channel - 112, channel, amount);
+        sendMidi(channel + NOTE_OFF, note, velocity);
     }
 
     @Override
     public void onMidiPolyphonicAftertouch(MidiInputDevice sender, int cable, int channel, int note, int pressure) {
+        sendMidi(channel + POLYPHONIC_AFTERTOUCH, note, pressure);
+    }
+
+    @Override
+    public void onMidiControlChange(MidiInputDevice sender, int cable, int channel, int function, int value) {
+        sendMidi(channel + CONTROL_CHANGE, function, value);
+    }
+
+    @Override
+    public void onMidiProgramChange(MidiInputDevice sender, int cable, int channel, int program) {
+        sendMidi(channel + PROGRAM_CHANGE, channel, program);
+    }
+
+    @Override
+    public void onMidiChannelAftertouch(MidiInputDevice sender, int cable, int channel, int pressure) {
+        sendMidi(channel + CHANNEL_PRESSURE, pressure);
+    }
+
+    @Override
+    public void onMidiPitchWheel(MidiInputDevice sender, int cable, int channel, int amount) {
+        sendMidi(channel + PITCH_BEND, amount);
+    }
+
+    @Override
+    public void onMidiMiscellaneousFunctionCodes(MidiInputDevice sender, int cable, int byte1, int byte2, int byte3) {
+        //sendMidi(byte1, byte2, byte3);
+    }
+
+    @Override
+    public void onMidiCableEvents(MidiInputDevice sender, int cable, int byte1, int byte2, int byte3) {
+        //sendMidi(byte1, byte2, byte3);
+    }
+
+    @Override
+    public void onMidiSingleByte(MidiInputDevice sender, int cable, int byte1) {
+
+    }
+
+    @Override
+    public void onMidiTimeCodeQuarterFrame(MidiInputDevice sender, int cable, int timing) {
+
+    }
+
+    @Override
+    public void onMidiSongSelect(MidiInputDevice sender, int cable, int song) {
+
+    }
+
+    @Override
+    public void onMidiSongPositionPointer(MidiInputDevice sender, int cable, int position) {
+
+    }
+
+    @Override
+    public void onMidiSystemCommonMessage(MidiInputDevice sender, int cable, byte[] bytes) {
+
+    }
+
+    @Override
+    public void onMidiSystemExclusive(MidiInputDevice sender, int cable, byte[] systemExclusive) {
 
     }
 
@@ -222,51 +204,6 @@ public class MainActivity extends AbstractMultipleMidiActivity {
 
     @Override
     public void onMidiOutputDeviceDetached(MidiOutputDevice midiOutputDevice) {
-
-    }
-
-    @Override
-    public void onMidiMiscellaneousFunctionCodes(MidiInputDevice sender, int cable, int byte1, int byte2, int byte3) {
-
-    }
-
-    @Override
-    public void onMidiCableEvents(MidiInputDevice sender, int cable, int byte1, int byte2, int byte3) {
-
-    }
-
-    @Override
-    public void onMidiSystemCommonMessage(MidiInputDevice sender, int cable, byte[] bytes) {
-
-    }
-
-    @Override
-    public void onMidiSystemExclusive(MidiInputDevice sender, int cable, byte[] systemExclusive) {
-
-    }
-
-    @Override
-    public void onMidiChannelAftertouch(MidiInputDevice sender, int cable, int channel, int pressure) {
-
-    }
-
-    @Override
-    public void onMidiSingleByte(MidiInputDevice sender, int cable, int byte1) {
-
-    }
-
-    @Override
-    public void onMidiTimeCodeQuarterFrame(MidiInputDevice sender, int cable, int timing) {
-
-    }
-
-    @Override
-    public void onMidiSongSelect(MidiInputDevice sender, int cable, int song) {
-
-    }
-
-    @Override
-    public void onMidiSongPositionPointer(MidiInputDevice sender, int cable, int position) {
 
     }
 
@@ -304,4 +241,69 @@ public class MainActivity extends AbstractMultipleMidiActivity {
     public void onMidiReset(MidiInputDevice sender, int cable) {
 
     }
+
+    private void playChord(final int channelId, final int... notes) {
+        Log.d(TAG, "chord play issued");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    byte[] msg = new byte[3];
+                    for (int note : notes) {
+                        sendMidi(NOTE_ON + channelId, note, 127);
+                        Thread.sleep(200);
+                        sendMidi(NOTE_OFF + channelId, note, 0);
+                        mMidiDriver.write(msg);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void sendMidi(int m, int p) {
+        byte msg[] = new byte[2];
+
+        msg[0] = (byte) m;
+        msg[1] = (byte) p;
+
+        mMidiDriver.write(msg);
+    }
+
+    private void sendMidi(int m, int n, int v) {
+        byte msg[] = new byte[3];
+
+        msg[0] = (byte) m;
+        msg[1] = (byte) n;
+        msg[2] = (byte) v;
+
+        mMidiDriver.write(msg);
+    }
+
+    private static final String[] INSTRUMENTS = new String[]{"Acoustic Grand Piano",
+            "Bright Acoustic Piano", "Electric Grand Piano", "Honky Tonk Piano", "Electric Piano 0",
+            "Electric Piano 1", "Harpsichord", "Clavi", "Celesta", "Glockenspiel", "Music Box",
+            "Vibraphone", "Marimba", "Xylophone", "Tubular Bells", "Dulcimer", "Drawbar Organ",
+            "Percussive Organ", "Rock Organ", "Church Organ", "Reed Organ", "Accordion",
+            "Harmonica", "Tango Accordion", "Acoustic Guitar Nylon", "Acoustic Guitar Steel",
+            "Electric Guitar Jazz", "Electric Guitar Clean", "Electric Guitar Muted",
+            "Overdriven Guitar", "Distortion Guitar", "Guitar Harmonics", "Acoustic Bass",
+            "Electric Bass Finger", "Electric Bass Pick", "Fretless Bass", "Slap Bass 0",
+            "Slap Bass 1", "Synth Bass 0", "Synth Bass 1", "Violin", "Viola", "Cello", "Contrabass",
+            "Tremolo Strings", "Pizzicato Strings", "Orchestral Harp", "Timpani",
+            "String Ensemble 0", "String Ensemble 1", "Synthstrings 0", "Synthstrings 1",
+            "Choir Aahs", "Voice Oohs", "Synth Voice", "Orchestra Hit", "Trumpet", "Trombone",
+            "Tuba", "Muted Trumpet", "French Horn", "Brass Section", "Synthbrass 0", "Synthbrass 1",
+            "Soprano", "Alto Sax", "Tenor Sax", "Baritone Sax", "Oboe", "English Horn", "Bassoon",
+            "Clarinet", "Piccolo", "Flute", "Recorder", "Pan Flute", "Blown Bottle", "Shakuhachi",
+            "Whistle", "Ocarina", "Lead 0 Square", "Lead 1 Sawtooth", "Lead 2 Calliope",
+            "Lead 3 Chiff", "Lead 4 Charang", "Lead 5 Voice", "Lead 6 Fifths", "Lead 7 Bass Lead",
+            "Pad 0 New Age", "Pad 1 Warm", "Pad 2 Polysynth", "Pad 3 Choir", "Pad 4 Bowed",
+            "Pad 5 Metallic", "Pad 6 Halo", "Pad 7 Sweep", "Fx 0 Rain", "Fx 1 Soundtrack",
+            "Fx 2 Crystal", "Fx 3 Atmosphere", "Fx 4 Brightness", "Fx 5 Goblins", "Fx 6 Echoes",
+            "Fx 7 Sci Fi", "Sit R", "Banjo", "Shamisen", "Koto", "Kalimba", "Bag Pipe", "Fiddle",
+            "Shanai", "Tinkle Bell", "Agogo", "Steel Drums", "Woodblock", "Taiko Drum",
+            "Melodic Tom", "Synth Drum", "Reverse Cymbal", "Guitar Fret Noise", "Breath Noise",
+            "Seashore", "Bird Tweet", "Telephone Ring", "Helicopter", "Applause", "Gunshot"};
 }
