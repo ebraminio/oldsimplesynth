@@ -2,6 +2,8 @@ package com.byagowi.simplesynth;
 
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -80,13 +82,14 @@ public class MainActivity extends AbstractMultipleMidiActivity {
                 s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        Log.d(TAG, "program change issued");
+                        Log.d(TAG, "program change issued " + position);
                         sendMidi(PROGRAM_CHANGE + channelId, position);
                     }
 
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) { }
                 });
+                s.setSelection(channelId);
 
                 ll.addView(s);
             }
@@ -104,52 +107,61 @@ public class MainActivity extends AbstractMultipleMidiActivity {
 
     @Override
     public void onMidiNoteOn(MidiInputDevice sender, int cable, int channel, int note, int velocity) {
-        sendMidi(channel + NOTE_ON, note, velocity);
+
+        Message m = Message.obtain(uiThreadEventHandler, channel + NOTE_ON, note, velocity);
+        uiThreadEventHandler.sendMessage(m);
     }
 
     @Override
     public void onMidiNoteOff(MidiInputDevice sender, int cable, int channel, int note, int velocity) {
-        sendMidi(channel + NOTE_OFF, note, velocity);
+        Message m = Message.obtain(uiThreadEventHandler, channel + NOTE_OFF, note, velocity);
+        uiThreadEventHandler.sendMessage(m);
     }
 
     @Override
     public void onMidiPolyphonicAftertouch(MidiInputDevice sender, int cable, int channel, int note, int pressure) {
-        sendMidi(channel + POLYPHONIC_AFTERTOUCH, note, pressure);
+        Message m = Message.obtain(uiThreadEventHandler, channel + POLYPHONIC_AFTERTOUCH, note, pressure);
+        uiThreadEventHandler.sendMessage(m);
     }
 
     @Override
     public void onMidiControlChange(MidiInputDevice sender, int cable, int channel, int function, int value) {
-        sendMidi(channel + CONTROL_CHANGE, function, value);
+        Message m = Message.obtain(uiThreadEventHandler, channel + CONTROL_CHANGE, function, value);
+        uiThreadEventHandler.sendMessage(m);
     }
 
     @Override
     public void onMidiProgramChange(MidiInputDevice sender, int cable, int channel, int program) {
-        sendMidi(channel + PROGRAM_CHANGE, channel, program);
+        Message m = Message.obtain(uiThreadEventHandlerTwoByte, channel + PROGRAM_CHANGE, program);
+        uiThreadEventHandlerTwoByte.sendMessage(m);
     }
 
     @Override
     public void onMidiChannelAftertouch(MidiInputDevice sender, int cable, int channel, int pressure) {
-        sendMidi(channel + CHANNEL_PRESSURE, pressure);
+        Message m = Message.obtain(uiThreadEventHandlerTwoByte, channel + PROGRAM_CHANGE, pressure);
+        uiThreadEventHandlerTwoByte.sendMessage(m);
     }
 
     @Override
     public void onMidiPitchWheel(MidiInputDevice sender, int cable, int channel, int amount) {
-        sendMidi(channel + PITCH_BEND, amount);
+        Message m = Message.obtain(uiThreadEventHandlerTwoByte, channel + PROGRAM_CHANGE, amount);
+        uiThreadEventHandlerTwoByte.sendMessage(m);
     }
 
     @Override
     public void onMidiMiscellaneousFunctionCodes(MidiInputDevice sender, int cable, int byte1, int byte2, int byte3) {
-        //sendMidi(byte1, byte2, byte3);
+        Message m = Message.obtain(uiThreadEventHandler, byte1, byte2, byte3);
+        uiThreadEventHandler.sendMessage(m);
     }
 
     @Override
     public void onMidiCableEvents(MidiInputDevice sender, int cable, int byte1, int byte2, int byte3) {
-        //sendMidi(byte1, byte2, byte3);
+        Message m = Message.obtain(uiThreadEventHandler, byte1, byte2, byte3);
+        uiThreadEventHandler.sendMessage(m);
     }
 
     @Override
     public void onMidiSingleByte(MidiInputDevice sender, int cable, int byte1) {
-
     }
 
     @Override
@@ -241,6 +253,24 @@ public class MainActivity extends AbstractMultipleMidiActivity {
     public void onMidiReset(MidiInputDevice sender, int cable) {
 
     }
+
+    final Handler uiThreadEventHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.d(TAG, "Three bytes message handled, " + msg.what + " " + msg.arg1 + " " + msg.arg2);
+            sendMidi(msg.what, msg.arg1, msg.arg2);
+            return true;
+        }
+    });
+
+    final Handler uiThreadEventHandlerTwoByte = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.d(TAG, "Two bytes message handled, " + msg.what + " " + msg.arg1 + " " + msg.arg2);
+            sendMidi(msg.what, msg.arg1);
+            return true;
+        }
+    });
 
     private void playChord(final int channelId, final int... notes) {
         Log.d(TAG, "chord play issued");
