@@ -89,7 +89,7 @@ public class MainActivity extends AbstractMultipleMidiActivity {
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) { }
                 });
-                s.setSelection(channelId);
+                s.setSelection(DEFAULT_INSTRUMENTS[channelId]);
 
                 ll.addView(s);
             }
@@ -312,28 +312,32 @@ public class MainActivity extends AbstractMultipleMidiActivity {
     }
 
     private static final String[] INSTRUMENTS = new String[]{"Acoustic Grand Piano",
-            "Bright Acoustic Piano", "Electric Grand Piano", "Honky Tonk Piano", "Electric Piano 0",
-            "Electric Piano 1", "Harpsichord", "Clavi", "Celesta", "Glockenspiel", "Music Box",
+            "Bright Acoustic Piano", "Electric Grand Piano", "Honky Tonk Piano", "Electric Piano 1",
+            "Electric Piano 2", "Harpsichord", "Clavi", "Celesta", "Glockenspiel", "Music Box",
             "Vibraphone", "Marimba", "Xylophone", "Tubular Bells", "Dulcimer", "Drawbar Organ",
             "Percussive Organ", "Rock Organ", "Church Organ", "Reed Organ", "Accordion",
             "Harmonica", "Tango Accordion", "Acoustic Guitar Nylon", "Acoustic Guitar Steel",
             "Electric Guitar Jazz", "Electric Guitar Clean", "Electric Guitar Muted",
             "Overdriven Guitar", "Distortion Guitar", "Guitar Harmonics", "Acoustic Bass",
             "Electric Bass Finger", "Electric Bass Pick", "Fretless Bass", "Slap Bass 0",
-            "Slap Bass 1", "Synth Bass 0", "Synth Bass 1", "Violin", "Viola", "Cello", "Contrabass",
+            "Slap Bass 1", "Synth Bass 1", "Synth Bass 2", "Violin", "Viola", "Cello", "Contrabass",
             "Tremolo Strings", "Pizzicato Strings", "Orchestral Harp", "Timpani",
-            "String Ensemble 0", "String Ensemble 1", "Synthstrings 0", "Synthstrings 1",
+            "String Ensemble 1", "String Ensemble 2", "Synthstrings 1", "Synthstrings 2",
             "Choir Aahs", "Voice Oohs", "Synth Voice", "Orchestra Hit", "Trumpet", "Trombone",
-            "Tuba", "Muted Trumpet", "French Horn", "Brass Section", "Synthbrass 0", "Synthbrass 1",
+            "Tuba", "Muted Trumpet", "French Horn", "Brass Section", "Synthbrass 1", "Synthbrass 2",
             "Soprano", "Alto Sax", "Tenor Sax", "Baritone Sax", "Oboe", "English Horn", "Bassoon",
             "Clarinet", "Piccolo", "Flute", "Recorder", "Pan Flute", "Blown Bottle", "Shakuhachi",
-            "Whistle", "Ocarina", "Lead 0 Square", "Lead 1 Sawtooth", "Lead 2 Calliope",
-            "Lead 3 Chiff", "Lead 4 Charang", "Lead 5 Voice", "Lead 6 Fifths", "Lead 7 Bass Lead",
-            "Pad 0 New Age", "Pad 1 Warm", "Pad 2 Polysynth", "Pad 3 Choir", "Pad 4 Bowed",
-            "Pad 5 Metallic", "Pad 6 Halo", "Pad 7 Sweep", "Fx 0 Rain", "Fx 1 Soundtrack",
-            "Fx 2 Crystal", "Fx 3 Atmosphere", "Fx 4 Brightness", "Fx 5 Goblins", "Fx 6 Echoes",
-            "Fx 7 Sci Fi", "Sit R", "Banjo", "Shamisen", "Koto", "Kalimba", "Bag Pipe", "Fiddle",
+            "Whistle", "Ocarina", "Lead 1 Square", "Lead 2 Sawtooth", "Lead 3 Calliope",
+            "Lead 4 Chiff", "Lead 5 Charang", "Lead 6 Voice", "Lead 7 Fifths", "Lead 8 Bass Lead",
+            "Pad 1 New Age", "Pad 2 Warm", "Pad 3 Polysynth", "Pad 4 Choir", "Pad 5 Bowed",
+            "Pad 6 Metallic", "Pad 7 Halo", "Pad 8 Sweep", "Fx 1 Rain", "Fx 2 Soundtrack",
+            "Fx 3 Crystal", "Fx 4 Atmosphere", "Fx 5 Brightness", "Fx 6 Goblins", "Fx 7 Echoes",
+            "Fx 8 Sci Fi", "Sit R", "Banjo", "Shamisen", "Koto", "Kalimba", "Bag Pipe", "Fiddle",
             "Shanai", "Tinkle Bell", "Agogo", "Steel Drums", "Woodblock", "Taiko Drum",
             "Melodic Tom", "Synth Drum", "Reverse Cymbal", "Guitar Fret Noise", "Breath Noise",
             "Seashore", "Bird Tweet", "Telephone Ring", "Helicopter", "Applause", "Gunshot"};
+
+    private static final int[] DEFAULT_INSTRUMENTS = {
+            0, 2, 6, 13, 19, 24, 32, 42, 56, 0, 64, 73, 85, 92, 100, 118
+    };
 }
